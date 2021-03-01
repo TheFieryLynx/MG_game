@@ -1,18 +1,12 @@
-//
-//  main.cpp
-//  Stray Cat
-//
-//  Created by Alexander Makhov on 18.02.2021.
-//
-
 #include "common.h"
 #include "Image.h"
 #include "Player.h"
+#include "castle.hpp"
 
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
 
-constexpr GLsizei WINDOW_WIDTH = 1024, WINDOW_HEIGHT = 1024;
+constexpr GLsizei WINDOW_WIDTH = 768, WINDOW_HEIGHT = 768;
 
 struct InputState
 {
@@ -26,6 +20,8 @@ struct InputState
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
+GLfloat deltaTimeTMP = 0.0f;
+GLfloat deltaTimeTMP1 = 0.0f;
 
 
 void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -96,7 +92,7 @@ void OnMouseMove(GLFWwindow* window, double xpos, double ypos)
 
 void OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 {
-        // ...
+    // ...
 }
 
 
@@ -121,14 +117,53 @@ int initGL()
     return 0;
 }
 
+int UpdatePhase(GLfloat &currentFrame) {
+    GLfloat tmp = currentFrame * 4;
+    if (tmp < 1) {
+        return 0;
+    }
+    if (tmp < 2) {
+        return 1;
+    }
+    if (tmp < 3) {
+        return 2;
+    }
+    currentFrame = 0;
+    return 0;
+}
+
+//void SetBlackScreen(std::shared_ptr<Image> screen, GLfloat &current)
+//{
+//    Pixel pix;
+//    GLfloat currentFrame = glfwGetTime();
+//    while (currentFrame < 20) {
+//        currentFrame = glfwGetTime();
+//        std::cout << "LOL" <<  currentFrame << std::endl;
+//    }
+//    std::cout << currentFrame << std::endl;
+//    for (double p = 0.9; p >= 0; p -= 0.5) {
+//        for(int y = 0; y < 768; ++y) {
+//            for(int x = 0; x < 768; ++x) {
+//                pix = screen->GetPixel(x, y);
+//                pix.r *= p;
+//                pix.g *= p;
+//                pix.b *= p;
+//                pix.a *= p;
+//                screen->PutPixel(x, y, pix);
+//            }
+//        }
+//
+//    }
+//}
+
 int main(int argc, char** argv)
 {
     if(!glfwInit())
         return -1;
     
-        //    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        //    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        //    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    //    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    //    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     
     GLFWwindow*  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "task1 base project", nullptr, nullptr);
@@ -149,32 +184,71 @@ int main(int argc, char** argv)
     if(initGL() != 0)
         return -1;
     
-        //Reset any OpenGL errors which could be present for some reason
+    //Reset any OpenGL errors which could be present for some reason
     GLenum gl_error = glGetError();
     while (gl_error != GL_NO_ERROR)
         gl_error = glGetError();
     
     Point starting_pos{.x = WINDOW_WIDTH / 2, .y = WINDOW_HEIGHT / 2};
+    Point floor{.x = 0, .y = 0};
     
+    Castle cast{floor};
     
     Player player{starting_pos};
     
-    Image img("../resources/tex.png");
     Image screenBuffer(WINDOW_WIDTH, WINDOW_HEIGHT, 4);
     
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);  GL_CHECK_ERRORS;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GL_CHECK_ERRORS;
     
-        //game loop
+    cast.SetScreen(screenBuffer);
+    cast.DrawBackground();
+    
+    cast.GetScreen()->ScreenSave();
+    player.SetCastle(std::make_shared<Castle>(cast));
+    double p = 0.9;
+    Pixel pix;
+    bool not_black = true;
+    //game loop
     while (!glfwWindowShouldClose(window))
     {
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         glfwPollEvents();
+        deltaTimeTMP += deltaTime;
         
-        processPlayerMovement(player);
-        player.Draw(screenBuffer);
+        if (player.GetState() == PlayerState::CHANGING_ROOM) {
+            cast.SaveScreen();
+            if (not_black) {
+                for(int y = 0; y < WINDOW_HEIGHT; ++y) {
+                    for(int x = 0; x < WINDOW_HEIGHT; ++x) {
+                        pix = cast.GetScreen()->GetPixel(x, y);
+                        pix.r *= p;
+                        pix.g *= p;
+                        pix.b *= p;
+                        pix.a *= p;
+                        cast.GetScreen()->PutPixel(x, y, pix);
+                    }
+                }
+                p -= 0.05;
+                if (p < 0) {
+                    not_black = false;
+                }
+            }
+            if (!not_black) {
+                player.SetCoords(cast.DrawNewRoom());
+                cast.SaveNewRoom();
+                player.SetState(PlayerState::ALIVE);
+                player.TurnOnPlayer();
+            }
+        }
+        
+        if (player.GetState() == PlayerState::ALIVE) {
+            player.SetPhase(UpdatePhase(deltaTimeTMP));
+            processPlayerMovement(player);
+            player.Draw(cast.GetScreen());
+        }
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_CHECK_ERRORS;
         glDrawPixels (WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, screenBuffer.Data()); GL_CHECK_ERRORS;

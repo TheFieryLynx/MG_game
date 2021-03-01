@@ -15,6 +15,7 @@
 		4714C52225DE93D6007108C0 /* libglfw.3.3.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4714C50025DE8E18007108C0 /* libglfw.3.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4921C41C25E54E1500EF74DF /* libglfw.3.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4921C41B25E54E1500EF74DF /* libglfw.3.3.dylib */; };
 		4921C41D25E54E1E00EF74DF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4714C4FC25DE8DBF007108C0 /* OpenGL.framework */; };
+		4921C42025E6DDC000EF74DF /* castle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4921C41E25E6DDC000EF74DF /* castle.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,7 +30,7 @@
 		};
 		4714C52025DE93D4007108C0 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
@@ -37,7 +38,7 @@
 				4714C51F25DE93D4007108C0 /* OpenGL.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -59,6 +60,10 @@
 		4714C52325DE9566007108C0 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		4921C41925E54D9600EF74DF /* libGLEW.2.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.2.1.0.dylib; path = ../../../../../usr/local/lib/libGLEW.2.1.0.dylib; sourceTree = "<group>"; };
 		4921C41B25E54E1500EF74DF /* libglfw.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.3.dylib; path = ../../../../../usr/local/Cellar/glfw/3.3.2/lib/libglfw.3.3.dylib; sourceTree = "<group>"; };
+		4921C41E25E6DDC000EF74DF /* castle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = castle.cpp; sourceTree = "<group>"; };
+		4921C41F25E6DDC000EF74DF /* castle.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = castle.hpp; sourceTree = "<group>"; };
+		498A6B1825EBD7DD00F51A7F /* Point.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Point.h; sourceTree = "<group>"; };
+		49BFCEF325E7AC2C00DB655B /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = resources; path = "Stray Cat/resources"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +82,7 @@
 		4714C4CD25DE8B9B007108C0 = {
 			isa = PBXGroup;
 			children = (
+				49BFCEF325E7AC2C00DB655B /* resources */,
 				4714C52325DE9566007108C0 /* .gitignore */,
 				4714C4D825DE8B9B007108C0 /* Stray Cat */,
 				4714C4D725DE8B9B007108C0 /* Products */,
@@ -106,6 +112,9 @@
 				4714C4EA25DE8C3C007108C0 /* Player.h */,
 				4714C4E925DE8C3C007108C0 /* stb_image_write.h */,
 				4714C4E625DE8C3C007108C0 /* stb_image.h */,
+				4921C41E25E6DDC000EF74DF /* castle.cpp */,
+				4921C41F25E6DDC000EF74DF /* castle.hpp */,
+				498A6B1825EBD7DD00F51A7F /* Point.h */,
 			);
 			path = "Stray Cat";
 			sourceTree = "<group>";
@@ -181,6 +190,7 @@
 				4714C4EC25DE8C3C007108C0 /* Player.cpp in Sources */,
 				4714C4DA25DE8B9B007108C0 /* main.cpp in Sources */,
 				4714C4E325DE8C2A007108C0 /* Image.cpp in Sources */,
+				4921C42025E6DDC000EF74DF /* castle.cpp in Sources */,
 				4714C4EB25DE8C3C007108C0 /* glad.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
