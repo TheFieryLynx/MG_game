@@ -4,9 +4,11 @@
 
 #include "Point.h"
 #include "Image.h"
+#include <iostream>
 
 #include <fstream>
 #include <vector>
+#include <map>
 #include <sstream>
 
 struct Rooms
@@ -20,6 +22,7 @@ struct Rooms
 struct Castle
 {
     explicit Castle(Point pos = {.x = 0, .y = 0}, int room = 1) : coords(pos), current_room(room) {
+        std::cout << "I'm Constuctor" << std::endl;
         InitTemplates();
         InitResources();
     };
@@ -32,11 +35,14 @@ struct Castle
     void SetRoom(int room);
     void SetScreen(Image &s) { screen = std::make_shared<Image>(s) ;};
     int GetRoom() { return current_room; };
+    std::map<int, Rooms> GetRoomNeighbors() { return room_neighbors;  }
     std::shared_ptr<Image> GetScreen() { return screen; }
     void InitTemplates();
     void InitResources();
     
-    void SaveScreen();
+    void ReadMap();
+    
+    //void SaveScreen();
     Point DrawNewRoom();
     void SaveNewRoom();
 private:
@@ -48,8 +54,16 @@ private:
     std::shared_ptr<Image> screen;
     std::vector<std::shared_ptr<Image>> floor;
     std::vector<std::shared_ptr<Image>> wall;
+    std::map<int, Rooms> room_neighbors;
     
-    std::vector<Pixel *> screenStates;
+    //Castle& operator= (const Castle &cast) = delete;
+    
+//    Castle& operator= (const Castle &cast)
+//    {
+//        return std::make_shared<Castle>(cast);
+//
+//    }
+    //std::vector<Pixel *> screenStates;
 };
 
 

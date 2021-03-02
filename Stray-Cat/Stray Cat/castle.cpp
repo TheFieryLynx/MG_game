@@ -19,6 +19,7 @@ void Castle::Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern)
 
 Point Castle::DrawRoom(std::shared_ptr<Image> screen, int num)
 {
+    std::cout << "DRAWING ROOM IS " << num << std::endl;
     Point return_point;
     int tilenum = 24 * 24;
     int j, corn;
@@ -70,12 +71,12 @@ Point Castle::DrawRoom(std::shared_ptr<Image> screen, int num)
 
 void Castle::SetRoom(int room)
 {
+    std::cout << "!!!" << std::endl;
     current_room = room;
 }
 
 void Castle::DrawBackground()
 {
-    SetRoom(1);
     Point a = DrawRoom(screen, GetRoom());
     a.x += 0;
 }
@@ -99,15 +100,13 @@ void Castle::InitTemplates()
 {
     std::fstream file_temp;
     file_temp.open("../../../Stray Cat/resources/BackGround/Template.txt");
-    int inp, i = 0;
+    int inp;
     while (file_temp >> inp) {
         temp.push_back(inp);
-        i++;
     }
     file_temp.close();
     
     file_temp.open("../../../Stray Cat/resources/BackGround/BackGround.txt");
-    i = 0;
     char ch;
     while((ch = file_temp.get()) != EOF) {
         if (ch != '\n') {
@@ -117,22 +116,71 @@ void Castle::InitTemplates()
     file_temp.close();
     
     file_temp.open("../../../Stray Cat/resources/BackGround/WallCorner.txt");
-    i = 0;
     while (file_temp >> inp) {
         corner.push_back(inp);
-        i++;
     }
     file_temp.close();
+    
+    ReadMap();
 }
 
-void Castle::SaveScreen()
+//void Castle::SaveScreen()
+//{
+//    screenStates.push_back(screen->Data_save());
+//}
+
+void Castle::ReadMap()
 {
-    screenStates.push_back(screen->Data_save());
+    std::fstream file_temp;
+    file_temp.open("../../../Stray Cat/resources/BackGround/Map.txt");
+    int n, inp;
+    file_temp >> n;
+    std::vector<int> vec;
+    while (file_temp >> inp) {
+        vec.push_back(inp);
+    }
+    int size = int (vec.size()), line = size / n, y = 0;
+    Rooms neighbors;
+    for(int i = 0; i < size; i++) {
+        if (vec[i] != 0) {
+            if (i - line >= 0) {
+                neighbors.top = vec[i - line];
+            } else {
+                neighbors.top = 0;
+            }
+            y = i / line;
+            if (i + 1 < (y + 1) * line) {
+                neighbors.right = vec[i + 1];
+            } else {
+                neighbors.right = 0;
+            }
+            
+            if (i + line < size) {
+                neighbors.bottom = vec[i + line];
+            } else {
+                neighbors.bottom = 0;
+            }
+            if (i - 1 >= y * line) {
+                neighbors.left = vec[i - 1];
+            } else {
+                neighbors.left = 0;
+            }
+            room_neighbors[vec[i]] = neighbors;
+        }
+        
+    }
+    for (auto i : room_neighbors) {
+        std::cout << i.first << ":" << std::endl;
+        std::cout << "LEFT: " << i.second.left << std::endl;
+        std::cout << "TOP: " << i.second.top << std::endl;
+        std::cout << "RIGHT: " << i.second.right << std::endl;
+        std::cout << "BOTTOM: " << i.second.bottom << std::endl << std::endl;
+    }
 }
 
 Point Castle::DrawNewRoom()
 {
-    return DrawRoom(GetScreen(), GetRoom() + 1);
+    return DrawRoom(GetScreen(), GetRoom());
 }
 
 void Castle::SaveNewRoom()

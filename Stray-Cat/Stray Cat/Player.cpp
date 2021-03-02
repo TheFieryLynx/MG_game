@@ -108,18 +108,38 @@ void Player::ProcessInput(MovementDir dir)
         default:
             break;
     }
+    int next_room = 0;
     //std::cout << CheckExit(coords) << std::endl;
     if (CheckExit(coords) && move_speed != 0) {
-        state = PlayerState::CHANGING_ROOM;
         move_speed_tmp = move_speed;
         move_speed = 0;
-        castle->SetRoom(castle->GetRoom() + 1);
+        state = PlayerState::CHANGING_ROOM;
+        
+        
+        if (coords.y >= 768 - 32 && coords.y < 768) {
+            next_room = castle->GetRoomNeighbors()[castle->GetRoom()].top;
+        } else if (coords.y > 0 && coords.y < 32) {
+            next_room = castle->GetRoomNeighbors()[castle->GetRoom()].bottom;
+        } else if (coords.x > 0 && coords.x < 32) {
+            next_room = castle->GetRoomNeighbors()[castle->GetRoom()].left;
+        } else if (coords.x >= 768 - 32 && coords.x < 768) {
+            next_room = castle->GetRoomNeighbors()[castle->GetRoom()].right;
+        }
+        
+        if (next_room == 0) {
+            std::cout << "NO ROOM THERE" << std::endl;
+        } else {
+            std::cout << "Next room: " << next_room << std::endl;
+            
+            castle->SetRoom(next_room);
+            std::cout << "Current room: " << castle->GetRoom() << std::endl;
+        }
         //castle->ChangeRoom();
     }
 }
 
 
-void Player::SetCastle(std::shared_ptr<Castle> cast)
+void Player::SetCastle(Castle *cast)
 {
     castle = cast;
 }

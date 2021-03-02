@@ -193,7 +193,7 @@ int main(int argc, char** argv)
     Point floor{.x = 0, .y = 0};
     
     Castle cast{floor};
-    
+   
     Player player{starting_pos};
     
     Image screenBuffer(WINDOW_WIDTH, WINDOW_HEIGHT, 4);
@@ -205,7 +205,8 @@ int main(int argc, char** argv)
     cast.DrawBackground();
     
     cast.GetScreen()->ScreenSave();
-    player.SetCastle(std::make_shared<Castle>(cast));
+    player.SetCastle(&cast);
+    
     double p = 0.9;
     Pixel pix;
     bool not_black = true;
@@ -219,8 +220,10 @@ int main(int argc, char** argv)
         deltaTimeTMP += deltaTime;
         
         if (player.GetState() == PlayerState::CHANGING_ROOM) {
-            cast.SaveScreen();
+            //cast.SaveScreen();
+            std::cout << not_black <<std::endl;
             if (not_black) {
+                std::cout << "starting" << std::endl;
                 for(int y = 0; y < WINDOW_HEIGHT; ++y) {
                     for(int x = 0; x < WINDOW_HEIGHT; ++x) {
                         pix = cast.GetScreen()->GetPixel(x, y);
@@ -232,7 +235,8 @@ int main(int argc, char** argv)
                     }
                 }
                 p -= 0.05;
-                if (p < 0) {
+                if (p <= 0) {
+                    std::cout << "I'M HERE" << std::endl;
                     not_black = false;
                 }
             }
@@ -241,12 +245,16 @@ int main(int argc, char** argv)
                 cast.SaveNewRoom();
                 player.SetState(PlayerState::ALIVE);
                 player.TurnOnPlayer();
+                not_black = true;
+                p = 0.9;
             }
         }
         
         if (player.GetState() == PlayerState::ALIVE) {
             player.SetPhase(UpdatePhase(deltaTimeTMP));
+            //std::cout << "CURRENT ROOM2: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             processPlayerMovement(player);
+            //std::cout << "CURRENT ROOM3: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             player.Draw(cast.GetScreen());
         }
         
