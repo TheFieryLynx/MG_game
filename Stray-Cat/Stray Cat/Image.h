@@ -31,7 +31,7 @@ struct Image
     Pixel* Data_save()   { return  data_save; }
     
     Pixel GetPixel(int x, int y) { return data[width * y + x];}
-    void  PutPixel(int x, int y, const Pixel &pix) { data[height * y + x] = pix; }
+    void  PutPixel(int x, int y, const Pixel &pix) { data[width * y + x] = pix; }
     
     Pixel GetSavedPixel(int x, int y) { return data_save[width * y + x];}
     

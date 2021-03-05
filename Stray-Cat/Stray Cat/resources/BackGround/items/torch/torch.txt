@@ -1,0 +1,4 @@
+../../../Stray Cat/resources/BackGround/items/torch/1.png
+../../../Stray Cat/resources/BackGround/items/torch/2.png
+../../../Stray Cat/resources/BackGround/items/torch/3.png
+../../../Stray Cat/resources/BackGround/items/torch/4.png

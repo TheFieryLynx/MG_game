@@ -48,9 +48,13 @@ struct Player
     void SetCoords(Point p) { coords.x = p.x; coords.y = p.y; }
     void TurnOnPlayer() { move_speed = move_speed_tmp; }
     void SetCastle(Castle *cast);
+    Point GetNewCoords();
+    std::string GetRoomDirection() { return next_room_direction; }
+    
 private:
     Castle* castle;
     Point coords {.x = 10, .y = 10};
+    std::string next_room_direction;
     Point old_coords {.x = 10, .y = 10};
     Pixel color {.r = 255, .g = 255, .b = 0, .a = 255};
     int move_speed_tmp;

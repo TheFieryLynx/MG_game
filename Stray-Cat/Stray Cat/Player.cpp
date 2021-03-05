@@ -118,21 +118,24 @@ void Player::ProcessInput(MovementDir dir)
         
         if (coords.y >= 768 - 32 && coords.y < 768) {
             next_room = castle->GetRoomNeighbors()[castle->GetRoom()].top;
+            next_room_direction = "top";
         } else if (coords.y > 0 && coords.y < 32) {
             next_room = castle->GetRoomNeighbors()[castle->GetRoom()].bottom;
+            next_room_direction = "bottom";
         } else if (coords.x > 0 && coords.x < 32) {
             next_room = castle->GetRoomNeighbors()[castle->GetRoom()].left;
+            next_room_direction = "left";
         } else if (coords.x >= 768 - 32 && coords.x < 768) {
             next_room = castle->GetRoomNeighbors()[castle->GetRoom()].right;
+            next_room_direction = "right";
         }
         
         if (next_room == 0) {
             std::cout << "NO ROOM THERE" << std::endl;
         } else {
-            std::cout << "Next room: " << next_room << std::endl;
-            
+            //std::cout << "Next room: " << next_room << std::endl;
             castle->SetRoom(next_room);
-            std::cout << "Current room: " << castle->GetRoom() << std::endl;
+            //std::cout << "Current room: " << castle->GetRoom() << std::endl;
         }
         //castle->ChangeRoom();
     }

@@ -6,7 +6,7 @@
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
 
-constexpr GLsizei WINDOW_WIDTH = 768, WINDOW_HEIGHT = 768;
+constexpr GLsizei WINDOW_WIDTH = 1120, WINDOW_HEIGHT = 768;
 
 struct InputState
 {
@@ -189,20 +189,29 @@ int main(int argc, char** argv)
     while (gl_error != GL_NO_ERROR)
         gl_error = glGetError();
     
-    Point starting_pos{.x = WINDOW_WIDTH / 2, .y = WINDOW_HEIGHT / 2};
+    Point starting_pos{.x = WINDOW_HEIGHT / 2, .y = WINDOW_HEIGHT / 2};
     Point floor{.x = 0, .y = 0};
     
     Castle cast{floor};
-   
     Player player{starting_pos};
+    Items castle_items;
+    Inventory inv;
     
-    Image screenBuffer(WINDOW_WIDTH, WINDOW_HEIGHT, 4);
+    Image screenBuffer(WINDOW_HEIGHT, WINDOW_HEIGHT, 4);
+    Image inventoryBuffer(WINDOW_WIDTH - WINDOW_HEIGHT, WINDOW_HEIGHT, 4);
     
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);  GL_CHECK_ERRORS;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GL_CHECK_ERRORS;
     
+    inv.SetScreen(inventoryBuffer);
+    inv.DrawInventory();
+    
     cast.SetScreen(screenBuffer);
     cast.DrawBackground();
+    
+    castle_items.ReadTemplate(1);
+    castle_items.DrawStaticImages(cast.GetScreen());
+    
     
     cast.GetScreen()->ScreenSave();
     player.SetCastle(&cast);
@@ -220,12 +229,10 @@ int main(int argc, char** argv)
         deltaTimeTMP += deltaTime;
         
         if (player.GetState() == PlayerState::CHANGING_ROOM) {
-            //cast.SaveScreen();
-            std::cout << not_black <<std::endl;
             if (not_black) {
-                std::cout << "starting" << std::endl;
-                for(int y = 0; y < WINDOW_HEIGHT; ++y) {
-                    for(int x = 0; x < WINDOW_HEIGHT; ++x) {
+                //std::cout << "starting" << std::endl;
+                for(int y = 0; y < 768; ++y) {
+                    for(int x = 0; x < 768; ++x) {
                         pix = cast.GetScreen()->GetPixel(x, y);
                         pix.r *= p;
                         pix.g *= p;
@@ -236,12 +243,19 @@ int main(int argc, char** argv)
                 }
                 p -= 0.05;
                 if (p <= 0) {
-                    std::cout << "I'M HERE" << std::endl;
+                    //std::cout << "I'M HERE" << std::endl;
                     not_black = false;
                 }
             }
             if (!not_black) {
-                player.SetCoords(cast.DrawNewRoom());
+                castle_items.Clear();
+                cast.DrawNewRoom();
+                castle_items.ReadTemplate(cast.GetRoom());
+                castle_items.DrawStaticImages(cast.GetScreen());
+                //std::cout << "SDSDSDSDFSD " << cast.GetPlayerPoint(player.GetRoomDirection()).x / 32 << " " << cast.GetPlayerPoint(player.GetRoomDirection()).y / 32 << std::endl;
+                //std::cout << " " << cast.GetPlayerPoint(player.GetRoomDirection()).y /32 << std::endl;
+                player.SetCoords(cast.GetPlayerPoint(player.GetRoomDirection()));  
+                
                 cast.SaveNewRoom();
                 player.SetState(PlayerState::ALIVE);
                 player.TurnOnPlayer();
@@ -254,12 +268,20 @@ int main(int argc, char** argv)
             player.SetPhase(UpdatePhase(deltaTimeTMP));
             //std::cout << "CURRENT ROOM2: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             processPlayerMovement(player);
+            std::cout << "I'M HERE " << std::endl;
+            castle_items.DrawAnimatedImages(cast.GetScreen(), deltaTime);
+            
             //std::cout << "CURRENT ROOM3: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             player.Draw(cast.GetScreen());
         }
         
+        glWindowPos2i(0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_CHECK_ERRORS;
-        glDrawPixels (WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, screenBuffer.Data()); GL_CHECK_ERRORS;
+        
+        glDrawPixels (WINDOW_HEIGHT, WINDOW_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, screenBuffer.Data()); GL_CHECK_ERRORS;
+        
+        glWindowPos2i(768, 0);
+        glDrawPixels (WINDOW_WIDTH - WINDOW_HEIGHT, WINDOW_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, inventoryBuffer.Data()); GL_CHECK_ERRORS;
         
         glfwSwapBuffers(window);
     }

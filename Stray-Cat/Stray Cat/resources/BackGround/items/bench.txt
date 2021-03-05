@@ -1,0 +1,2 @@
+../../../Stray Cat/resources/BackGround/items/1.png
+../../../Stray Cat/resources/BackGround/items/2.png

@@ -1,0 +1,9 @@
+../../../Stray Cat/resources/Inventory/1.png
+../../../Stray Cat/resources/Inventory/2.png
+../../../Stray Cat/resources/Inventory/3.png
+../../../Stray Cat/resources/Inventory/4.png
+../../../Stray Cat/resources/Inventory/5.png
+../../../Stray Cat/resources/Inventory/6.png
+../../../Stray Cat/resources/Inventory/7.png
+../../../Stray Cat/resources/Inventory/8.png
+../../../Stray Cat/resources/Inventory/9.png

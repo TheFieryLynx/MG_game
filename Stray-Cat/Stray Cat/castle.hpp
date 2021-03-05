@@ -10,6 +10,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <array>
 
 struct Rooms
 {
@@ -17,6 +18,47 @@ struct Rooms
     int right;
     int top;
     int bottom;
+};
+
+struct Inventory
+{
+    Inventory() {
+        InitResources();
+        ReadTempate();
+    }
+    void ReadTempate();
+    void InitResources();
+    void SetScreen(Image &s) { inv_screen = std::make_shared<Image>(s) ;};
+    void Draw(std::shared_ptr<Image> pattern);
+    void DrawInventory();
+private:
+    Point coords {.x = 0, .y = 0};
+    std::vector<std::shared_ptr<Image>> inv_img;
+    std::shared_ptr<Image> inv_screen;
+    std::vector<char> back;
+};
+
+struct Items
+{
+    Items() {
+        InitAnimatedImages();
+        InitStaticImages();
+        InitResources();
+    }
+    void Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords);
+    void InitResources();
+    void ReadTemplate(int room);
+    void InitAnimatedImages();
+    void InitStaticImages();
+    void DrawAnimatedImages(std::shared_ptr<Image> screen, float timer);
+    void DrawStaticImages(std::shared_ptr<Image> screen);
+    void Clear();
+private:
+    std::vector<char> tmp;
+    std::vector<Point> bench_location;
+    std::vector<Point> torch_location;
+    std::vector<std::shared_ptr<Image>> torch;
+    std::vector<std::shared_ptr<Image>> bench;
 };
 
 struct Castle
@@ -28,7 +70,7 @@ struct Castle
     };
     void Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern);
     void DrawBackground();
-    Point DrawRoom(std::shared_ptr<Image> screen, int num);
+    void DrawRoom(std::shared_ptr<Image> screen, int num);
     std::vector<char> GetBackGround() { return back; };
     std::vector<int> GetWallCorner() { return corner; };
     std::vector<std::shared_ptr<Image>> GetWall(){ return wall; };
@@ -39,23 +81,26 @@ struct Castle
     std::shared_ptr<Image> GetScreen() { return screen; }
     void InitTemplates();
     void InitResources();
-    
+    void SetPoint(Point a, int room); // 0 - left, 1 - top, 2 - right, 3 - bottom;
+    Point GetPlayerPoint(std::string s);
     void ReadMap();
     
     //void SaveScreen();
-    Point DrawNewRoom();
+    void DrawNewRoom();
     void SaveNewRoom();
 private:
     Point coords {.x = 0, .y = 0};
     int current_room;
     std::vector<int> temp;
     std::vector<int> corner;
+    
     std::vector<char> back;
     std::shared_ptr<Image> screen;
     std::vector<std::shared_ptr<Image>> floor;
     std::vector<std::shared_ptr<Image>> wall;
+    //
     std::map<int, Rooms> room_neighbors;
-    
+    std::array<Point, 4> possible_points;
     //Castle& operator= (const Castle &cast) = delete;
     
 //    Castle& operator= (const Castle &cast)
