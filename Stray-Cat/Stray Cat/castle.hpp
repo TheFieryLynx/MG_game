@@ -45,20 +45,28 @@ struct Items
         InitStaticImages();
         InitResources();
     }
-    void Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords);
+    void Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords, double p);
     void InitResources();
     void ReadTemplate(int room);
     void InitAnimatedImages();
     void InitStaticImages();
     void DrawAnimatedImages(std::shared_ptr<Image> screen, float timer);
     void DrawStaticImages(std::shared_ptr<Image> screen);
+    void DrawDoor(std::shared_ptr<Image> screen, bool is_opened, double p);
     void Clear();
+    void DrawSaved(std::shared_ptr<Image> screen, Point coords);
+    bool GetDoorStatus(){ return door_is_opened; }
+    void SetDoorStatus(){ door_is_opened = true; } 
+    std::vector<Point> GetDoorLocation() { return door_location; }
 private:
     std::vector<char> tmp;
+    bool door_is_opened = false;
     std::vector<Point> bench_location;
     std::vector<Point> torch_location;
+    std::vector<Point> door_location;
     std::vector<std::shared_ptr<Image>> torch;
     std::vector<std::shared_ptr<Image>> bench;
+    std::vector<std::shared_ptr<Image>> door;
 };
 
 struct Castle

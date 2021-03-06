@@ -49,13 +49,15 @@ void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, in
 void processPlayerMovement(Player &player)
 {
     if (Input.keys[GLFW_KEY_W])
-        player.ProcessInput(MovementDir::UP);
+        player.ProcessInput(PlayerAction::UP);
     else if (Input.keys[GLFW_KEY_S])
-        player.ProcessInput(MovementDir::DOWN);
+        player.ProcessInput(PlayerAction::DOWN);
     if (Input.keys[GLFW_KEY_A])
-        player.ProcessInput(MovementDir::LEFT);
+        player.ProcessInput(PlayerAction::LEFT);
     else if (Input.keys[GLFW_KEY_D])
-        player.ProcessInput(MovementDir::RIGHT);
+        player.ProcessInput(PlayerAction::RIGHT);
+    if (Input.keys[GLFW_KEY_E])
+        player.ProcessInput(PlayerAction::INTERACTION);
 }
 
 void OnMouseButtonClicked(GLFWwindow* window, int button, int action, int mods)
@@ -212,13 +214,19 @@ int main(int argc, char** argv)
     castle_items.ReadTemplate(1);
     castle_items.DrawStaticImages(cast.GetScreen());
     
-    
+    cast.GetScreen()->ScreenSaveClean();
     cast.GetScreen()->ScreenSave();
+    
+    castle_items.DrawDoor(cast.GetScreen(), false, 1);
+    
+    
+    
     player.SetCastle(&cast);
+    player.SetItems(&castle_items);
     
     double p = 0.9;
     Pixel pix;
-    bool not_black = true;
+    bool not_black = true, not_closed = true;
     //game loop
     while (!glfwWindowShouldClose(window))
     {
@@ -252,11 +260,14 @@ int main(int argc, char** argv)
                 cast.DrawNewRoom();
                 castle_items.ReadTemplate(cast.GetRoom());
                 castle_items.DrawStaticImages(cast.GetScreen());
+                
                 //std::cout << "SDSDSDSDFSD " << cast.GetPlayerPoint(player.GetRoomDirection()).x / 32 << " " << cast.GetPlayerPoint(player.GetRoomDirection()).y / 32 << std::endl;
                 //std::cout << " " << cast.GetPlayerPoint(player.GetRoomDirection()).y /32 << std::endl;
                 player.SetCoords(cast.GetPlayerPoint(player.GetRoomDirection()));  
                 
                 cast.SaveNewRoom();
+                //castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus());
+                //castle_items.SetDoorStatus(false);
                 player.SetState(PlayerState::ALIVE);
                 player.TurnOnPlayer();
                 not_black = true;
@@ -264,12 +275,38 @@ int main(int argc, char** argv)
             }
         }
         
+        if (player.GetState() == PlayerState::OPENING_DOOR) {
+            if (not_closed) {
+                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(), p);
+                p -= 0.05;
+                if (p <= 0) {
+        
+                    not_closed = false;
+                }
+            }
+            if (!not_closed) {
+                for(auto i : castle_items.GetDoorLocation()) {
+                    castle_items.DrawSaved(cast.GetScreen(), i);
+                }
+                player.SetState(PlayerState::ALIVE);
+                player.TurnOnPlayer();
+                not_closed = true;
+                p = 0.9;
+            }
+            
+        }
+        
         if (player.GetState() == PlayerState::ALIVE) {
             player.SetPhase(UpdatePhase(deltaTimeTMP));
             //std::cout << "CURRENT ROOM2: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             processPlayerMovement(player);
-            std::cout << "I'M HERE " << std::endl;
+            //std::cout << "I'M HERE " << std::endl;
             castle_items.DrawAnimatedImages(cast.GetScreen(), deltaTime);
+            //std::cout << "STATUS: " << castle_items.GetDoorStatus() << std::endl;
+            if (!castle_items.GetDoorStatus()) {
+                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(), 1);
+            }
+            
             
             //std::cout << "CURRENT ROOM3: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             player.Draw(cast.GetScreen());

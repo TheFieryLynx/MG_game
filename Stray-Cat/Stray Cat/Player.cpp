@@ -46,28 +46,43 @@ bool Player::CheckExit(Point coord)
     return false;
 }
 
+bool Player::CheckDoor(Point coord)
+{
+    int x_int = coord.x / tileSize;
+    int y_int = coord.y / tileSize;
+    std::vector<Point> doors = items->GetDoorLocation();
+    for(auto i : doors) {
+        //std::cout << "CURRENT: " << x_int << " " << y_int << " NEED: " << i.x / tileSize << " " << i.y / tileSize << std::endl;
+        if (i.x / tileSize == x_int && i.y / tileSize == y_int) {
+            return true;
+        }
+    }
+    return false;
+}
 
-void Player::ProcessInput(MovementDir dir)
+void Player::ProcessInput(PlayerAction dir)
 {
     int move_dist = move_speed * 1;
     Point tmp, tmp1;
     int offset = 0;
     switch(dir)
     {
-        case MovementDir::UP:
+        case PlayerAction::UP:
             choose_skin.dir = 2;
             old_coords.y = coords.y;
             tmp.x = coords.x;
-            tmp.y = coords.y + move_dist + 15;
+            tmp.y = coords.y + move_dist + 28;
             tmp1.x = coords.x + 25;
-            tmp1.y = coords.y + move_dist + 15;
-            if (coords.y + move_dist + 15 < 768) {
-                if (!CheckWall(tmp) && !CheckWall(tmp1)) {
-                    coords.y += move_dist;
+            tmp1.y = coords.y + move_dist + 28;
+            if (coords.y + move_dist + 28 < 768) {
+                if (!CheckWall(tmp) && !CheckWall(tmp1)) { //!items->GetDoorStatus() &&
+                    if ((!CheckDoor(tmp) && !CheckDoor(tmp1)) || items->GetDoorStatus()) {
+                        coords.y += move_dist;
+                    }
                 }
             }
             break;
-        case MovementDir::DOWN:
+        case PlayerAction::DOWN:
             if (CheckCorner(coords)) {
                 offset = 5;
             }
@@ -83,7 +98,7 @@ void Player::ProcessInput(MovementDir dir)
                 }
             }
             break;
-        case MovementDir::LEFT:
+        case PlayerAction::LEFT:
             choose_skin.dir = 0;
             old_coords.x = coords.x;
             tmp.x = coords.x - move_dist;
@@ -94,7 +109,7 @@ void Player::ProcessInput(MovementDir dir)
                 }
             }
             break;
-        case MovementDir::RIGHT:
+        case PlayerAction::RIGHT:
             choose_skin.dir = 3;
             old_coords.x = coords.x;
             tmp.x = coords.x + move_dist + 25;
@@ -105,6 +120,15 @@ void Player::ProcessInput(MovementDir dir)
                 }
             }
             break;
+        case PlayerAction::INTERACTION:
+            std::cout << "TAKE THIS ITEM" << std::endl;
+            //std::cout << CheckDoor({ .x = coords.x, .y = coords.y + 32 }) << std::endl;
+            if (CheckDoor({ .x = coords.x, .y = coords.y + 32 })) {
+                move_speed_tmp = move_speed;
+                move_speed = 0;
+                state = PlayerState::OPENING_DOOR;
+                items->SetDoorStatus();
+            }
         default:
             break;
     }
@@ -145,6 +169,11 @@ void Player::ProcessInput(MovementDir dir)
 void Player::SetCastle(Castle *cast)
 {
     castle = cast;
+}
+
+void Player::SetItems(Items *itm)
+{
+    items = itm;
 }
 
 void Player::Draw(std::shared_ptr<Image> screen)

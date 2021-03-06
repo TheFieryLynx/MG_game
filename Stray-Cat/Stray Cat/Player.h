@@ -6,18 +6,20 @@
 #include "castle.hpp"
 
 
-enum class MovementDir
+enum class PlayerAction
 {
     UP,
     DOWN,
     LEFT,
-    RIGHT
+    RIGHT,
+    INTERACTION
 };
 
 enum class PlayerState
 {
     ALIVE,
-    CHANGING_ROOM
+    CHANGING_ROOM,
+    OPENING_DOOR
 };
 
 struct MovementPhase
@@ -34,7 +36,7 @@ struct Player
                 castle = NULL;
             };
     bool Moved() const;
-    void ProcessInput(MovementDir dir);
+    void ProcessInput(PlayerAction dir);
     void Draw(std::shared_ptr<Image> screen);
     void SetPhase(int phase);
     
@@ -43,16 +45,19 @@ struct Player
     bool CheckWall(Point coord);
     bool CheckCorner(Point coord);
     bool CheckExit(Point coord);
+    bool CheckDoor(Point coord);
     PlayerState GetState() { return  state; }
     void SetState(PlayerState st) { state = st; }
     void SetCoords(Point p) { coords.x = p.x; coords.y = p.y; }
     void TurnOnPlayer() { move_speed = move_speed_tmp; }
     void SetCastle(Castle *cast);
+    void SetItems(Items *itm);
     Point GetNewCoords();
     std::string GetRoomDirection() { return next_room_direction; }
     
 private:
     Castle* castle;
+    Items* items;
     Point coords {.x = 10, .y = 10};
     std::string next_room_direction;
     Point old_coords {.x = 10, .y = 10};

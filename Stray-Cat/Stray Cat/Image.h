@@ -34,8 +34,12 @@ struct Image
     void  PutPixel(int x, int y, const Pixel &pix) { data[width * y + x] = pix; }
     
     Pixel GetSavedPixel(int x, int y) { return data_save[width * y + x];}
+    Pixel GetSavedCleanPixel(int x, int y) { return data_clean[width * y + x];}
+    
+    void UpdateSavedTile(int x, int y, std::shared_ptr<Image> screen);
     
     void ScreenSave();
+    void ScreenSaveClean();
     
     ~Image();
     
@@ -46,6 +50,7 @@ private:
     size_t size = 0;
     Pixel *data = nullptr;
     Pixel *data_save = nullptr;
+    Pixel *data_clean = nullptr;
     bool self_allocated = false;
 };
 

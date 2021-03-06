@@ -38,12 +38,26 @@ Image::Image(int a_width, int a_height, int a_channels)
     }
 }
 
+void Image::ScreenSaveClean() 
+{
+    data_clean = new Pixel[width * height];
+    std::memcpy(data_clean, data, width * height * sizeof (Pixel));
+}
+
 void Image::ScreenSave()
 {
     data_save = new Pixel[width * height];
     std::memcpy(data_save, data, width * height * sizeof (Pixel));
 }
 
+void Image::UpdateSavedTile(int x, int y, std::shared_ptr<Image> screen)
+{
+    for (int i = x; i < x + tileSize; ++i) {
+        for (int j = y; j < y + tileSize; ++j) {
+            data_save[width * j + i] = screen->GetPixel(i, j);
+        }
+    }
+}
 
 int Image::Save(const std::string &a_path)
 {

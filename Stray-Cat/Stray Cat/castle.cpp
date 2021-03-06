@@ -239,7 +239,9 @@ void Castle::DrawNewRoom()
 
 void Castle::SaveNewRoom()
 {
+    screen->ScreenSaveClean();
     screen->ScreenSave();
+    
 }
 
 //=================================================================================================
@@ -266,6 +268,13 @@ void Items::InitStaticImages()
         bench.push_back(std::make_shared<Image>(path));
     }
     floor_file.close();
+    
+    std::fstream door_file("../../../Stray Cat/resources/BackGround/items/Door/door_paths.txt");
+    while (std::getline(door_file, path)) {
+        std::cout << path << std::endl;
+        door.push_back(std::make_shared<Image>(path));
+    }
+    door_file.close();
 }
 
 void Items::InitAnimatedImages()
@@ -291,37 +300,63 @@ void Items::ReadTemplate(int room)
             case 'b': //bench
                 bench_location.push_back({ .x = x, .y = y });
                 break;
+            case 'd':
+                door_location.push_back({ .x = x, .y = y });
+                break;
         }
     }
 }
 
-void Items::Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords)
+void Items::Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords, double p)
 {
+    Pixel pix;
     for(int y = 0; y < tileSize / 2; ++y) {
         for(int x = 0; x < tileSize / 2; ++x) {
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
             screen->PutPixel(2 * x + coords.x, 2 * y + coords.y,
-                            blend(screen->GetPixel(2 * x + coords.x, 2 * y + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+                            blend(screen->GetPixel(2 * x + coords.x, 2 * y + coords.y), pix));
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
             screen->PutPixel(2 * x + 1 + coords.x, 2 * y + coords.y,
-                            blend(screen->GetPixel(2 * x + 1 + coords.x, 2 * y + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+                            blend(screen->GetPixel(2 * x + 1 + coords.x, 2 * y + coords.y), pix));
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
             screen->PutPixel(2 * x + coords.x, 2 * y + 1 + coords.y,
-                            blend(screen->GetPixel(2 * x + coords.x, 2 * y + 1 + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+                            blend(screen->GetPixel(2 * x + coords.x, 2 * y + 1 + coords.y), pix));
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
             screen->PutPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y,
-                            blend(screen->GetPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+                            blend(screen->GetPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y), pix));
         }
     }
 }
 
-void DrawSaved(std::shared_ptr<Image> screen, Point coords)
+void Items::DrawSaved(std::shared_ptr<Image> screen, Point coords)
 {
     for(int y = coords.y; y < coords.y + tileSize; ++y)
     {
         for(int x = coords.x; x < coords.x + tileSize; ++x)
         {
-            Pixel pix = screen->GetSavedPixel(x, y);
+            Pixel pix = screen->GetSavedCleanPixel(x, y);
             screen->PutPixel(x, y, pix);
         }
     }
 }
+
+
 
 void Items::DrawAnimatedImages(std::shared_ptr<Image> screen, float time)
 {
@@ -329,11 +364,12 @@ void Items::DrawAnimatedImages(std::shared_ptr<Image> screen, float time)
     static float cnt = 0;
     cnt += time * 4;
     int j = int(cnt) % 4;
-    std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
+    //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
     for(auto i : torch_location) {
         //std::cout << "coords" << i.x << " " << i.y << std::endl;
         DrawSaved(screen, i);
-        Draw(screen, torch[j], i);
+        Draw(screen, torch[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
     }
 }
 
@@ -341,7 +377,25 @@ void Items::DrawStaticImages(std::shared_ptr<Image> screen)
 {
     int bench_i = 0;
     for(auto i : bench_location) {
-        Draw(screen, bench[(bench_i++) % 2], i);
+        Draw(screen, bench[(bench_i++) % 2], i, 1);
+    }
+}
+
+void Items::DrawDoor(std::shared_ptr<Image> screen, bool is_opened, double p)
+{
+    int door_i = 0;
+    if (is_opened) {
+        std::cout << "!!!!!" << std::endl;
+        door_i = 4;
+    }
+    for(auto i : door_location) {
+        if (is_opened) {
+            std::cout << i.x << " " << i.y << std::endl;
+            DrawSaved(screen, i);
+            Draw(screen, door[(door_i++) % 4], i, p);
+        } else {
+            Draw(screen, door[(door_i++) % 4], i, 1);
+        }
     }
 }
 
@@ -349,6 +403,7 @@ void Items::Clear()
 {
     torch_location.clear();
     bench_location.clear();
+    door_location.clear();
 }
 
 
@@ -375,7 +430,7 @@ void Inventory::InitResources()
     std::string path;
     std::fstream floor_file("../../../Stray Cat/resources/Inventory/Inventory_paths.txt");
     while (std::getline(floor_file, path)) {
-        std::cout << path << std::endl;
+        //std::cout << path << std::endl;
         inv_img.push_back(std::make_shared<Image>(path));
     }
     floor_file.close();
@@ -388,7 +443,7 @@ void Inventory::ReadTempate()
     char ch;
     while((ch = file_temp.get()) != EOF) {
         if (ch != '\n' && ch != ' ') {
-            std::cout << ch;
+            //std::cout << ch;
             back.push_back(ch);
         }
     }
@@ -401,7 +456,7 @@ void Inventory::DrawInventory()
     for (int i = 0; i < tilenum; ++i) {
         coords.x = (i % 11) * tileSize;
         coords.y = (768 - tileSize) - tileSize * ((i % tilenum) / 11);
-        std::cout << "============ " << back[i] << coords.x << " " << coords.y << std::endl;
+        //std::cout << "============ " << back[i] << coords.x << " " << coords.y << std::endl;
         switch (back[i]) {
             case 't':
                 Draw(inv_img[2]);
