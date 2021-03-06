@@ -46,6 +46,20 @@ bool Player::CheckExit(Point coord)
     return false;
 }
 
+bool Player::CheckKey(Point coord)
+{
+    int x_int = coord.x / tileSize;
+    int y_int = coord.y / tileSize;
+    //std::cout << "BRUH " << items->GetKeyLocation().size() << std::endl;
+    for(auto i : items->GetKeyLocation()) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        if (i.x / 32 == x_int && i.y / 32 == y_int) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Player::CheckDoor(Point coord)
 {
     int x_int = coord.x / tileSize;
@@ -60,9 +74,14 @@ bool Player::CheckDoor(Point coord)
     return false;
 }
 
+bool Player::CheckMonster(Point coord)
+{
+    return monsters->matrix[coord.x / 32][coord.y / 32];
+}
+
 void Player::ProcessInput(PlayerAction dir)
 {
-    int move_dist = move_speed * 1;
+    int move_dist = move_speed * 2;
     Point tmp, tmp1;
     int offset = 0;
     switch(dir)
@@ -76,7 +95,7 @@ void Player::ProcessInput(PlayerAction dir)
             tmp1.y = coords.y + move_dist + 28;
             if (coords.y + move_dist + 28 < 768) {
                 if (!CheckWall(tmp) && !CheckWall(tmp1)) { //!items->GetDoorStatus() &&
-                    if ((!CheckDoor(tmp) && !CheckDoor(tmp1)) || items->GetDoorStatus()) {
+                    if ((!CheckDoor(tmp) && !CheckDoor(tmp1)) || items->GetDoorStatus(castle->GetRoom())) {
                         coords.y += move_dist;
                     }
                 }
@@ -123,22 +142,38 @@ void Player::ProcessInput(PlayerAction dir)
         case PlayerAction::INTERACTION:
             std::cout << "TAKE THIS ITEM" << std::endl;
             //std::cout << CheckDoor({ .x = coords.x, .y = coords.y + 32 }) << std::endl;
-            if (CheckDoor({ .x = coords.x, .y = coords.y + 32 })) {
+            if (CheckDoor({ .x = coords.x, .y = coords.y + 32 }) && num_of_keys) {
+                num_of_keys--;
                 move_speed_tmp = move_speed;
                 move_speed = 0;
                 state = PlayerState::OPENING_DOOR;
-                items->SetDoorStatus();
+                std::cout << "KEKE" << std::endl;
+                items->SetDoorStatus(castle->GetRoom(), 1);
             }
+            
+           
         default:
             break;
     }
     int next_room = 0;
-    //std::cout << CheckExit(coords) << std::endl;
+    //std::cout << "COOOOOOORDS " << CheckKey(coords) << std::endl;
+    if (CheckKey(coords)) {
+        items->SetKeyStatus(castle->GetRoom(), false);
+        num_of_keys++;
+        items->ClearKeyLocation();
+        std::cout << num_of_keys << std::endl;
+    }
+    
+    if (CheckMonster(coords)) {
+        move_speed_tmp = move_speed;
+        move_speed = 0;
+        state = PlayerState::DYING;
+    }
+    
     if (CheckExit(coords) && move_speed != 0) {
         move_speed_tmp = move_speed;
         move_speed = 0;
         state = PlayerState::CHANGING_ROOM;
-        
         
         if (coords.y >= 768 - 32 && coords.y < 768) {
             next_room = castle->GetRoomNeighbors()[castle->GetRoom()].top;
@@ -175,6 +210,12 @@ void Player::SetItems(Items *itm)
 {
     items = itm;
 }
+
+void Player::SetMonsters(Monster *mnst)
+{
+    monsters = mnst;
+}
+
 
 void Player::Draw(std::shared_ptr<Image> screen)
 {

@@ -20,3 +20,5 @@
 ../../../Stray Cat/resources/BackGround/wall/wall_corner_right_20.png
 ../../../Stray Cat/resources/BackGround/wall/wall_inner_corner_t_top_left_21.png
 ../../../Stray Cat/resources/BackGround/wall/wall_inner_corner_t_top_rigth_22.png
+../../../Stray Cat/resources/BackGround/wall/wall_column_top_23.png
+../../../Stray Cat/resources/BackGround/wall/wall_column_mid_24.png

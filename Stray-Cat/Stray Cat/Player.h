@@ -19,7 +19,8 @@ enum class PlayerState
 {
     ALIVE,
     CHANGING_ROOM,
-    OPENING_DOOR
+    OPENING_DOOR,
+    DYING
 };
 
 struct MovementPhase
@@ -41,21 +42,24 @@ struct Player
     void SetPhase(int phase);
     
     void SetCastle(const Castle &cast);
-    
+    bool CheckKey(Point coord);
     bool CheckWall(Point coord);
     bool CheckCorner(Point coord);
     bool CheckExit(Point coord);
     bool CheckDoor(Point coord);
+    bool CheckMonster(Point coord); 
     PlayerState GetState() { return  state; }
     void SetState(PlayerState st) { state = st; }
     void SetCoords(Point p) { coords.x = p.x; coords.y = p.y; }
     void TurnOnPlayer() { move_speed = move_speed_tmp; }
     void SetCastle(Castle *cast);
     void SetItems(Items *itm);
+    void SetMonsters(Monster *monster);
     Point GetNewCoords();
     std::string GetRoomDirection() { return next_room_direction; }
-    
+    int num_of_keys = 0;
 private:
+    Monster* monsters;
     Castle* castle;
     Items* items;
     Point coords {.x = 10, .y = 10};

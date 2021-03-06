@@ -35,11 +35,13 @@ struct Image
     
     Pixel GetSavedPixel(int x, int y) { return data_save[width * y + x];}
     Pixel GetSavedCleanPixel(int x, int y) { return data_clean[width * y + x];}
+    Pixel GetSavedWithoutItems(int x, int y) { return data_without_items[width * y + x];}
     
     void UpdateSavedTile(int x, int y, std::shared_ptr<Image> screen);
     
     void ScreenSave();
     void ScreenSaveClean();
+    void ScreenSaveWithoutItems();
     
     ~Image();
     
@@ -51,6 +53,7 @@ private:
     Pixel *data = nullptr;
     Pixel *data_save = nullptr;
     Pixel *data_clean = nullptr;
+    Pixel *data_without_items = nullptr;
     bool self_allocated = false;
 };
 

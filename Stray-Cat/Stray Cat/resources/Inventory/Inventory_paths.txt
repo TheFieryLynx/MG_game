@@ -7,3 +7,4 @@
 ../../../Stray Cat/resources/Inventory/7.png
 ../../../Stray Cat/resources/Inventory/8.png
 ../../../Stray Cat/resources/Inventory/9.png
+../../../Stray Cat/resources/Inventory/key.png

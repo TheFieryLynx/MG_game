@@ -1,0 +1,4 @@
+../../../Stray Cat/resources/BackGround/items/keys/keys_1_1.png
+../../../Stray Cat/resources/BackGround/items/keys/keys_1_2.png
+../../../Stray Cat/resources/BackGround/items/keys/keys_1_3.png
+../../../Stray Cat/resources/BackGround/items/keys/keys_1_4.png

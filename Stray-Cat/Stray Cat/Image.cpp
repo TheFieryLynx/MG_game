@@ -50,6 +50,12 @@ void Image::ScreenSave()
     std::memcpy(data_save, data, width * height * sizeof (Pixel));
 }
 
+void Image::ScreenSaveWithoutItems()
+{
+    data_without_items = new Pixel[width * height];
+    std::memcpy(data_without_items, data, width * height * sizeof (Pixel));
+}
+
 void Image::UpdateSavedTile(int x, int y, std::shared_ptr<Image> screen)
 {
     for (int i = x; i < x + tileSize; ++i) {

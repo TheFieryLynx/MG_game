@@ -20,6 +20,46 @@ struct Rooms
     int bottom;
 };
 
+struct Monster
+{
+    Monster() {
+        ReadTemplate();
+        InitResources();
+    }
+    void ReadTemplate();
+    void InitMatrix();
+    void InitResources();
+    void CleanMatrix();
+    void ReadTemplate(int room);
+    void DrawMonsters(std::shared_ptr<Image> screen, float time);
+    void DrawSaved(std::shared_ptr<Image> screen, Point coords);
+    void Clear();
+    void Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords, double p);
+    std::vector<std::vector<int>> matrix;
+private:
+    std::vector<char> tmp;
+    std::vector<Point> monster1_location;
+    std::vector<std::shared_ptr<Image>> monster1;
+    
+    std::vector<Point> monster2_location;
+    std::vector<std::shared_ptr<Image>> monster2;
+    
+    std::vector<Point> monster3_location;
+    std::vector<std::shared_ptr<Image>> monster3;
+    
+    std::vector<Point> monster4_location;
+    std::vector<std::shared_ptr<Image>> monster4;
+    
+    std::vector<Point> monster5_location;
+    std::vector<std::shared_ptr<Image>> monster5;
+    
+    std::vector<Point> monster6_location;
+    std::vector<std::shared_ptr<Image>> monster6;
+    
+    
+    
+};
+
 struct Inventory
 {
     Inventory() {
@@ -30,10 +70,12 @@ struct Inventory
     void InitResources();
     void SetScreen(Image &s) { inv_screen = std::make_shared<Image>(s) ;};
     void Draw(std::shared_ptr<Image> pattern);
-    void DrawInventory();
+    void DrawFont(std::shared_ptr<Image> pattern);
+    void DrawInventory(int num_keys);
 private:
     Point coords {.x = 0, .y = 0};
     std::vector<std::shared_ptr<Image>> inv_img;
+    std::vector<std::shared_ptr<Image>> fonts;
     std::shared_ptr<Image> inv_screen;
     std::vector<char> back;
 };
@@ -52,18 +94,30 @@ struct Items
     void InitStaticImages();
     void DrawAnimatedImages(std::shared_ptr<Image> screen, float timer);
     void DrawStaticImages(std::shared_ptr<Image> screen);
-    void DrawDoor(std::shared_ptr<Image> screen, bool is_opened, double p);
+    void DrawDoor(std::shared_ptr<Image> screen, int opening_status, double p);
+    void DrawSavedWithoutItems(std::shared_ptr<Image> screen, Point coords);
     void Clear();
     void DrawSaved(std::shared_ptr<Image> screen, Point coords);
-    bool GetDoorStatus(){ return door_is_opened; }
-    void SetDoorStatus(){ door_is_opened = true; } 
+    int GetDoorStatus(int room);
+    void SetDoorStatus(int room, bool status);
+    bool GetKeyStatus(int room);
+    void SetKeyStatus(int room, bool status);
+    
     std::vector<Point> GetDoorLocation() { return door_location; }
+    std::vector<Point> GetKeyLocation() { return key_location ; }
+    void DrawKey(std::shared_ptr<Image> screen, float time, bool status);
+    void ClearKeyLocation() { key_location.clear(); }
+    int current_room;
 private:
     std::vector<char> tmp;
-    bool door_is_opened = false;
+    std::map<int, bool> key_in_room;
+    std::map<int, int> door_is_opened;
     std::vector<Point> bench_location;
     std::vector<Point> torch_location;
     std::vector<Point> door_location;
+    std::vector<Point> key_location;
+    std::vector<Point> key_location_copy;
+    std::vector<std::shared_ptr<Image>> key;
     std::vector<std::shared_ptr<Image>> torch;
     std::vector<std::shared_ptr<Image>> bench;
     std::vector<std::shared_ptr<Image>> door;

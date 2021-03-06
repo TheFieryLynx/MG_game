@@ -6,3 +6,4 @@
 ../../../Stray Cat/resources/BackGround/floor/floor_6.png
 ../../../Stray Cat/resources/BackGround/floor/floor_7.png
 ../../../Stray Cat/resources/BackGround/floor/floor_8.png
+../../../Stray Cat/resources/BackGround/floor/floor_9.png

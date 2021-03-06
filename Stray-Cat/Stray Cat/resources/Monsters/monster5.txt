@@ -1,0 +1,5 @@
+../../../Stray Cat/resources/Monsters/monster5/1.png
+../../../Stray Cat/resources/Monsters/monster5/2.png
+../../../Stray Cat/resources/Monsters/monster5/3.png
+../../../Stray Cat/resources/Monsters/monster5/4.png
+

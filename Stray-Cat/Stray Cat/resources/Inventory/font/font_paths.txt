@@ -1,0 +1,8 @@
+../../../Stray Cat/resources/Inventory/font/-.png
+../../../Stray Cat/resources/Inventory/font/0.png
+../../../Stray Cat/resources/Inventory/font/1.png
+../../../Stray Cat/resources/Inventory/font/2.png
+../../../Stray Cat/resources/Inventory/font/3.png
+../../../Stray Cat/resources/Inventory/font/4.png
+../../../Stray Cat/resources/Inventory/font/5.png
+../../../Stray Cat/resources/Inventory/font/6.png

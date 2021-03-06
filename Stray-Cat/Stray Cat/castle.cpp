@@ -241,7 +241,42 @@ void Castle::SaveNewRoom()
 {
     screen->ScreenSaveClean();
     screen->ScreenSave();
-    
+}
+
+int Items::GetDoorStatus(int room)
+{
+    auto search = door_is_opened.find(room);
+    if (search != door_is_opened.end()) {
+        //std::cout << "Found " << search->first << " " << search->second << " ";
+        return door_is_opened[room];
+    } else {
+        SetDoorStatus(room, 0);
+        //std::cout << "Not found ";
+        return false;
+    }
+}
+
+void Items::SetDoorStatus(int room, bool status)
+{
+    door_is_opened[room] = status;
+}
+
+bool Items::GetKeyStatus(int room)
+{
+    auto search = key_in_room.find(room);
+    if (search != key_in_room.end()) {
+        //std::cout << "Found " << search->first << " " << search->second << " ";
+        return key_in_room[room];
+    } else {
+        SetKeyStatus(room, true);
+        //std::cout << "Not found ";
+        return false;
+    }
+}
+
+void Items::SetKeyStatus(int room, bool status)
+{
+    key_in_room[room] = status;
 }
 
 //=================================================================================================
@@ -275,6 +310,7 @@ void Items::InitStaticImages()
         door.push_back(std::make_shared<Image>(path));
     }
     door_file.close();
+    
 }
 
 void Items::InitAnimatedImages()
@@ -285,6 +321,13 @@ void Items::InitAnimatedImages()
         torch.push_back(std::make_shared<Image>(path));
     }
     floor_file.close();
+    
+    std::fstream key_file("../../../Stray Cat/resources/BackGround/items/keys/key_paths.txt");
+    while (std::getline(key_file, path)) {
+        std::cout << path << std::endl;
+        key.push_back(std::make_shared<Image>(path));
+    }
+    key_file.close();
 }
 
 void Items::ReadTemplate(int room)
@@ -300,8 +343,12 @@ void Items::ReadTemplate(int room)
             case 'b': //bench
                 bench_location.push_back({ .x = x, .y = y });
                 break;
-            case 'd':
+            case 'd': //door
                 door_location.push_back({ .x = x, .y = y });
+                break;
+            case 'k': //key
+                key_location.push_back({ .x = x, .y = y });
+                key_location_copy.push_back({ .x = x, .y = y });
                 break;
         }
     }
@@ -356,21 +403,57 @@ void Items::DrawSaved(std::shared_ptr<Image> screen, Point coords)
     }
 }
 
+void Items::DrawSavedWithoutItems(std::shared_ptr<Image> screen, Point coords)
+{
+    for(int y = coords.y; y < coords.y + tileSize; ++y)
+    {
+        for(int x = coords.x; x < coords.x + tileSize; ++x)
+        {
+            Pixel pix = screen->GetSavedWithoutItems(x, y);
+            screen->PutPixel(x, y, pix);
+        }
+    }
+}
 
+void Items::DrawKey(std::shared_ptr<Image> screen, float time, bool status)
+{
+    static float cnt = 0;
+    cnt += time * 4;
+    int j = int(cnt) % 4;
+    if (status) {
+        for(auto i : key_location_copy) {
+            //std::cout << "coords" << i.x << " " << i.y << std::endl;
+            DrawSaved(screen, i);
+            Draw(screen, key[j], i, 1);
+            screen->UpdateSavedTile(i.x, i.y, screen);
+        }
+    } else {
+        for(auto i : key_location_copy) {
+            DrawSavedWithoutItems(screen, i);
+            Draw(screen, key[j], i, 0);
+            screen->UpdateSavedTile(i.x, i.y, screen);
+            //key_location_copy.clear();
+        }
+    }
+}
 
 void Items::DrawAnimatedImages(std::shared_ptr<Image> screen, float time)
 {
     //Draw torch
+    static int delta = 1;
     static float cnt = 0;
     cnt += time * 4;
     int j = int(cnt) % 4;
+    
     //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
     for(auto i : torch_location) {
+        delta++;
         //std::cout << "coords" << i.x << " " << i.y << std::endl;
         DrawSaved(screen, i);
-        Draw(screen, torch[j], i, 1);
+        Draw(screen, torch[(j + delta) % 4], i, 1);
         screen->UpdateSavedTile(i.x, i.y, screen);
     }
+    //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
 }
 
 void Items::DrawStaticImages(std::shared_ptr<Image> screen)
@@ -381,19 +464,22 @@ void Items::DrawStaticImages(std::shared_ptr<Image> screen)
     }
 }
 
-void Items::DrawDoor(std::shared_ptr<Image> screen, bool is_opened, double p)
+void Items::DrawDoor(std::shared_ptr<Image> screen, int opening_status, double p)
 {
+    // 0 - closed, 1 - opening, 2 - opened
     int door_i = 0;
-    if (is_opened) {
-        std::cout << "!!!!!" << std::endl;
-        door_i = 4;
-    }
     for(auto i : door_location) {
-        if (is_opened) {
+        if (opening_status == 1) {
             std::cout << i.x << " " << i.y << std::endl;
             DrawSaved(screen, i);
             Draw(screen, door[(door_i++) % 4], i, p);
+            //screen->UpdateSavedTile(i.x, i.y, screen);
+        } else if (opening_status == 2) {
+            Draw(screen, door[(door_i++) % 4], i, 0);
+            //screen->UpdateSavedTile(i.x, i.y, screen);
+            //screen->UpdateSavedTile(i.x, i.y, screen);
         } else {
+            screen->UpdateSavedTile(i.x, i.y, screen);
             Draw(screen, door[(door_i++) % 4], i, 1);
         }
     }
@@ -404,8 +490,9 @@ void Items::Clear()
     torch_location.clear();
     bench_location.clear();
     door_location.clear();
+    key_location.clear();
+    key_location_copy.clear();
 }
-
 
 //=================================================================
 
@@ -425,6 +512,23 @@ void Inventory::Draw(std::shared_ptr<Image> pattern)
     }
 }
 
+void Inventory::DrawFont(std::shared_ptr<Image> pattern)
+{
+    for(int y = 0; y < tileSize / 4; ++y) {
+        for(int x = 0; x < tileSize / 4; ++x) {
+            inv_screen->PutPixel(2 * x + coords.x, 2 * y + coords.y,
+                            blend(inv_screen->GetPixel(2 * x + coords.x, 2 * y + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+            inv_screen->PutPixel(2 * x + 1 + coords.x, 2 * y + coords.y,
+                            blend(inv_screen->GetPixel(2 * x + 1 + coords.x, 2 * y + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+            inv_screen->PutPixel(2 * x + coords.x, 2 * y + 1 + coords.y,
+                            blend(inv_screen->GetPixel(2 * x + coords.x, 2 * y + 1 + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+            inv_screen->PutPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y,
+                            blend(inv_screen->GetPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y), pattern->GetPixel(x, tileSize / 2 - y - 1)));
+        }
+    }
+}
+
+
 void Inventory::InitResources()
 {
     std::string path;
@@ -434,6 +538,13 @@ void Inventory::InitResources()
         inv_img.push_back(std::make_shared<Image>(path));
     }
     floor_file.close();
+    
+    std::fstream font_file("../../../Stray Cat/resources/Inventory/font/font_paths.txt");
+    while (std::getline(font_file, path)) {
+        //std::cout << path << std::endl;
+        fonts.push_back(std::make_shared<Image>(path));
+    }
+    font_file.close();
 }
 
 void Inventory::ReadTempate()
@@ -450,7 +561,7 @@ void Inventory::ReadTempate()
     file_temp.close();
 }
 
-void Inventory::DrawInventory()
+void Inventory::DrawInventory(int num_keys)
 {
     int tilenum = 11 * 24;
     for (int i = 0; i < tilenum; ++i) {
@@ -482,9 +593,248 @@ void Inventory::DrawInventory()
             case 'v':
                 Draw(inv_img[8]);
                 break;
+            case 'k':
+                Draw(inv_img[0]);
+                Draw(inv_img[9]);
+                break;
             case 'o':
                 Draw(inv_img[0]);
                 break;
+            case '-':
+                Draw(inv_img[0]);
+                Draw(fonts[0]);
+                break;
+            case 'n':
+                Draw(inv_img[0]);
+                Draw(fonts[num_keys + 1]);
+                break;
         }
     }
+}
+
+//========================================================
+void Monster::ReadTemplate()
+{
+    std::fstream file_temp;
+    file_temp.open("../../../Stray Cat/resources/Monsters/monsters.txt");
+    char ch;
+    //std::cout << "!!!!!!!!!!!!!" << std::endl;
+    while((ch = file_temp.get()) != EOF) {
+        if (ch != '\n' && ch != ' ') {
+            tmp.push_back(ch);
+        }
+    }
+    file_temp.close();
+}
+
+void Monster::InitResources()
+{
+    std::string path;
+    std::fstream monster1_file("../../../Stray Cat/resources/Monsters/monster1.txt");
+    while (std::getline(monster1_file, path)) {
+        monster1.push_back(std::make_shared<Image>(path));
+    }
+    monster1_file.close();
+    
+    std::fstream monster2_file("../../../Stray Cat/resources/Monsters/monster2.txt");
+    while (std::getline(monster2_file, path)) {
+        monster2.push_back(std::make_shared<Image>(path));
+    }
+    monster2_file.close();
+    
+    std::fstream monster3_file("../../../Stray Cat/resources/Monsters/monster3.txt");
+    while (std::getline(monster3_file, path)) {
+        monster3.push_back(std::make_shared<Image>(path));
+    }
+    monster3_file.close();
+    
+    std::fstream monster4_file("../../../Stray Cat/resources/Monsters/monster4.txt");
+    while (std::getline(monster4_file, path)) {
+        monster4.push_back(std::make_shared<Image>(path));
+    }
+    monster4_file.close();
+    
+    std::fstream monster5_file("../../../Stray Cat/resources/Monsters/monster5.txt");
+    while (std::getline(monster5_file, path)) {
+        monster5.push_back(std::make_shared<Image>(path));
+    }
+    monster5_file.close();
+    
+    std::fstream monster6_file("../../../Stray Cat/resources/Monsters/monster6.txt");
+    while (std::getline(monster6_file, path)) {
+        monster6.push_back(std::make_shared<Image>(path));
+    }
+    monster6_file.close();
+}
+
+void Monster::ReadTemplate(int room)
+{
+    int x, y, tilenum = 576;
+    for(int i = (room - 1) * tilenum; i < room * tilenum; ++i) {
+        x = (i % 24) * tileSize;
+        y = (768 - tileSize) - tileSize * ((i % tilenum) / 24);
+        switch (tmp[i]) {
+            case '1': //torch
+                monster1_location.push_back({ .x = x, .y = y });
+                break;
+            case '2':
+                monster2_location.push_back({ .x = x, .y = y });
+                break;
+            case '3':
+                monster3_location.push_back({ .x = x, .y = y });
+                break;
+            case '4':
+                monster4_location.push_back({ .x = x, .y = y });
+                break;
+            case '5':
+                monster5_location.push_back({ .x = x, .y = y });
+                break;
+            case '6':
+                monster6_location.push_back({ .x = x, .y = y });
+                break;
+        }
+    }
+}
+
+void Monster::CleanMatrix()
+{
+    for (auto i : matrix) {
+        for (auto j : i) {
+            j = 0;
+        }
+    }
+}
+
+void Monster::InitMatrix()
+{
+    std::vector<std::vector<int>> mx(25, std::vector<int>(25, 0));
+    for(auto i : monster1_location) {
+        mx[i.x / 32][i.y / 32] = 1;
+    }
+    for(auto i : monster2_location) {
+        mx[i.x / 32][i.y / 32] = 1;
+    }
+    for(auto i : monster3_location) {
+        mx[i.x / 32][i.y / 32] = 1;
+    }
+    for(auto i : monster4_location) {
+        mx[i.x / 32][i.y / 32] = 1;
+    }
+    for(auto i : monster5_location) {
+        mx[i.x / 32][i.y / 32] = 1;
+    }
+    for(auto i : monster6_location) {
+        mx[i.x / 32][i.y / 32] = 1;
+    }
+    matrix = mx;
+}
+
+void Monster::DrawSaved(std::shared_ptr<Image> screen, Point coords)
+{
+    for(int y = coords.y; y < coords.y + tileSize; ++y)
+    {
+        for(int x = coords.x; x < coords.x + tileSize; ++x)
+        {
+            Pixel pix = screen->GetSavedCleanPixel(x, y);
+            screen->PutPixel(x, y, pix);
+        }
+    }
+}
+
+void Monster::Draw(std::shared_ptr<Image> screen, std::shared_ptr<Image> pattern, Point coords, double p)
+{
+    Pixel pix;
+    for(int y = 0; y < tileSize / 2; ++y) {
+        for(int x = 0; x < tileSize / 2; ++x) {
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
+            screen->PutPixel(2 * x + coords.x, 2 * y + coords.y,
+                            blend(screen->GetPixel(2 * x + coords.x, 2 * y + coords.y), pix));
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
+            screen->PutPixel(2 * x + 1 + coords.x, 2 * y + coords.y,
+                            blend(screen->GetPixel(2 * x + 1 + coords.x, 2 * y + coords.y), pix));
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
+            screen->PutPixel(2 * x + coords.x, 2 * y + 1 + coords.y,
+                            blend(screen->GetPixel(2 * x + coords.x, 2 * y + 1 + coords.y), pix));
+            pix = pattern->GetPixel(x, tileSize / 2 - y - 1);
+            pix.r *= p;
+            pix.g *= p;
+            pix.b *= p;
+            pix.a *= p;
+            screen->PutPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y,
+                            blend(screen->GetPixel(2 * x + 1 + coords.x, 2 * y + 1 + coords.y), pix));
+        }
+    }
+}
+
+void Monster::DrawMonsters(std::shared_ptr<Image> screen, float time)
+{
+    //Draw torch
+    static float cnt = 0;
+    cnt += time * 4;
+    int j = int(cnt) % 4;
+    //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
+    for(auto i : monster1_location) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        DrawSaved(screen, i);
+        Draw(screen, monster1[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
+    }
+    
+    for(auto i : monster2_location) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        DrawSaved(screen, i);
+        Draw(screen, monster2[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
+    }
+    
+    for(auto i : monster3_location) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        DrawSaved(screen, i);
+        Draw(screen, monster3[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
+    }
+    
+    for(auto i : monster4_location) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        DrawSaved(screen, i);
+        Draw(screen, monster4[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
+    }
+    
+    for(auto i : monster5_location) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        DrawSaved(screen, i);
+        Draw(screen, monster5[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
+    }
+    
+    for(auto i : monster6_location) {
+        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        DrawSaved(screen, i);
+        Draw(screen, monster6[j], i, 1);
+        screen->UpdateSavedTile(i.x, i.y, screen);
+    }
+    //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
+}
+
+void Monster::Clear()
+{
+    monster1_location.clear();
+    monster2_location.clear();
+    monster3_location.clear();
+    monster4_location.clear();
+    monster5_location.clear();
+    monster6_location.clear();
 }

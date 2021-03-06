@@ -120,7 +120,7 @@ int initGL()
 }
 
 int UpdatePhase(GLfloat &currentFrame) {
-    GLfloat tmp = currentFrame * 4;
+    GLfloat tmp = currentFrame * 7;
     if (tmp < 1) {
         return 0;
     }
@@ -197,6 +197,7 @@ int main(int argc, char** argv)
     Castle cast{floor};
     Player player{starting_pos};
     Items castle_items;
+    Monster castle_monsters;
     Inventory inv;
     
     Image screenBuffer(WINDOW_HEIGHT, WINDOW_HEIGHT, 4);
@@ -206,21 +207,29 @@ int main(int argc, char** argv)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GL_CHECK_ERRORS;
     
     inv.SetScreen(inventoryBuffer);
-    inv.DrawInventory();
+    inv.DrawInventory(0);
     
     cast.SetScreen(screenBuffer);
     cast.DrawBackground();
     
+    cast.GetScreen()->ScreenSaveWithoutItems();
+    
     castle_items.ReadTemplate(1);
-    castle_items.DrawStaticImages(cast.GetScreen());
+    castle_monsters.ReadTemplate(1);
+    castle_monsters.InitMatrix();
     
     cast.GetScreen()->ScreenSaveClean();
+    
+    castle_items.DrawStaticImages(cast.GetScreen());
+    castle_items.current_room = 1;
+    
+    
     cast.GetScreen()->ScreenSave();
+    //castle_items.DrawKey(cast.GetScreen(), 0, true);
     
-    castle_items.DrawDoor(cast.GetScreen(), false, 1);
+    castle_items.DrawDoor(cast.GetScreen(), 0, 1);
     
-    
-    
+    player.SetMonsters(&castle_monsters);
     player.SetCastle(&cast);
     player.SetItems(&castle_items);
     
@@ -236,12 +245,14 @@ int main(int argc, char** argv)
         glfwPollEvents();
         deltaTimeTMP += deltaTime;
         
+    
+        
         if (player.GetState() == PlayerState::CHANGING_ROOM) {
             if (not_black) {
                 //std::cout << "starting" << std::endl;
                 for(int y = 0; y < 768; ++y) {
                     for(int x = 0; x < 768; ++x) {
-                        pix = cast.GetScreen()->GetPixel(x, y);
+                        pix = cast.GetScreen()->GetSavedPixel(x, y);
                         pix.r *= p;
                         pix.g *= p;
                         pix.b *= p;
@@ -257,15 +268,21 @@ int main(int argc, char** argv)
             }
             if (!not_black) {
                 castle_items.Clear();
+                castle_monsters.Clear();
                 cast.DrawNewRoom();
+                cast.GetScreen()->ScreenSaveWithoutItems();
                 castle_items.ReadTemplate(cast.GetRoom());
+                castle_monsters.CleanMatrix();
+                castle_monsters.ReadTemplate(cast.GetRoom()); 
+                castle_monsters.InitMatrix();
                 castle_items.DrawStaticImages(cast.GetScreen());
                 
                 //std::cout << "SDSDSDSDFSD " << cast.GetPlayerPoint(player.GetRoomDirection()).x / 32 << " " << cast.GetPlayerPoint(player.GetRoomDirection()).y / 32 << std::endl;
                 //std::cout << " " << cast.GetPlayerPoint(player.GetRoomDirection()).y /32 << std::endl;
                 player.SetCoords(cast.GetPlayerPoint(player.GetRoomDirection()));  
-                
+                castle_items.current_room = cast.GetRoom();
                 cast.SaveNewRoom();
+                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(castle_items.current_room), 0);
                 //castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus());
                 //castle_items.SetDoorStatus(false);
                 player.SetState(PlayerState::ALIVE);
@@ -277,7 +294,7 @@ int main(int argc, char** argv)
         
         if (player.GetState() == PlayerState::OPENING_DOOR) {
             if (not_closed) {
-                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(), p);
+                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(castle_items.current_room), p);
                 p -= 0.05;
                 if (p <= 0) {
         
@@ -287,13 +304,46 @@ int main(int argc, char** argv)
             if (!not_closed) {
                 for(auto i : castle_items.GetDoorLocation()) {
                     castle_items.DrawSaved(cast.GetScreen(), i);
+                    cast.GetScreen()->UpdateSavedTile(i.x, i.y, cast.GetScreen());
                 }
+                //castle_items.DrawSaved(cast.GetScreen(), <#Point coords#>)
                 player.SetState(PlayerState::ALIVE);
                 player.TurnOnPlayer();
+                castle_items.SetDoorStatus(cast.GetRoom(), 2);
                 not_closed = true;
                 p = 0.9;
             }
             
+        }
+        
+        if (player.GetState() == PlayerState::DYING) {
+            std::cout << " DYIIIING" << std::endl;
+            static Image gameover("../../../Stray Cat/resources/gameover.jpg");
+//            for(int y = 294; y < 411; ++y) {
+//                for(int x = 277; x < 441; ++x) {
+//                    cast.GetScreen()->PutPixel(2 * x + 220, 2 * y + 267,
+//                                    blend(cast.GetScreen()->GetPixel(2 * x + 220, 2 * y + 267), gameover.GetPixel(x, 411 - y - 1)));
+//                    cast.GetScreen()->PutPixel(2 * x + 1 + 220, 2 * y + 267,
+//                                    blend(cast.GetScreen()->GetPixel(2 * x + 1 + 220, 2 * y + 267), gameover.GetPixel(x, 411 - y - 1)));
+//                    cast.GetScreen()->PutPixel(2 * x + 220, 2 * y + 1 + 267,
+//                                    blend(cast.GetScreen()->GetPixel(2 * x + 220, 2 * y + 1 + 267), gameover.GetPixel(x, 411 - y - 1)));
+//                    cast.GetScreen()->PutPixel(2 * x + 1 + 220, 2 * y + 1 + 267,
+//                                    blend(cast.GetScreen()->GetPixel(2 * x + 1 + 220, 2 * y + 1 + 267), gameover.GetPixel(x, 411 - y - 1)));
+//                }
+//            }
+            for(int y = 294; y < 294 + 117; ++y)
+            {
+                for(int x = 278; x < 278 + 164; ++x)
+                {
+                    Pixel pix = gameover.GetPixel(x, y);
+                    cast.GetScreen()->PutPixel(302 + (x - 277), WINDOW_HEIGHT - 325 - (y - 294), pix);
+                }
+            }
+            static int i = 0;
+            i++;
+            if (i == 100) {
+                break;
+            }
         }
         
         if (player.GetState() == PlayerState::ALIVE) {
@@ -302,15 +352,29 @@ int main(int argc, char** argv)
             processPlayerMovement(player);
             //std::cout << "I'M HERE " << std::endl;
             castle_items.DrawAnimatedImages(cast.GetScreen(), deltaTime);
+            castle_monsters.DrawMonsters(cast.GetScreen(), deltaTime);
+        
+            castle_items.DrawKey(cast.GetScreen(), deltaTime, castle_items.GetKeyStatus(cast.GetRoom()));
+    
+            
             //std::cout << "STATUS: " << castle_items.GetDoorStatus() << std::endl;
-            if (!castle_items.GetDoorStatus()) {
-                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(), 1);
+            //if (!castle_items.GetDoorStatus(cast.GetRoom())) {
+                //std::cout << "AaAaaaaaaaaaaaaaaa " <<  castle_items.GetDoorStatus(castle_items.current_room) << " " <<  castle_items.current_room << std::endl;
+            if (castle_items.GetDoorStatus(castle_items.current_room) == 2) {
+                //std::cout << "HERE" <<std::endl;
+                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(castle_items.current_room), 0);
+            } else if (castle_items.GetDoorStatus(castle_items.current_room) == 0) {
+                //std::cout << "NOT HERE" <<std::endl;
+                castle_items.DrawDoor(cast.GetScreen(), castle_items.GetDoorStatus(castle_items.current_room), 1);
             }
+                
+            //}
             
             
             //std::cout << "CURRENT ROOM3: " << cast.GetRoom() << player.castle->GetRoom() << std::endl;
             player.Draw(cast.GetScreen());
         }
+        inv.DrawInventory(player.num_of_keys);
         
         glWindowPos2i(0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_CHECK_ERRORS;
