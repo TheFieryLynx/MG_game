@@ -20,7 +20,8 @@ enum class PlayerState
     ALIVE,
     CHANGING_ROOM,
     OPENING_DOOR,
-    DYING
+    DYING,
+    WINNING
 };
 
 struct MovementPhase
@@ -47,7 +48,8 @@ struct Player
     bool CheckCorner(Point coord);
     bool CheckExit(Point coord);
     bool CheckDoor(Point coord);
-    bool CheckMonster(Point coord); 
+    bool CheckMonster(Point coord);
+    bool CheckWin(Point coord);
     PlayerState GetState() { return  state; }
     void SetState(PlayerState st) { state = st; }
     void SetCoords(Point p) { coords.x = p.x; coords.y = p.y; }

@@ -29,7 +29,7 @@ bool Player::CheckCorner(Point coord)
 {
     int x_int = coord.x / tileSize;
     int y_int = coord.y / tileSize;
-    //std::cout << "ROOM: " << castle->GetRoom() << std::endl;
+    
     if (castle->GetWallCorner()[(23 - y_int) * 24 + 24 * 24 * (castle->GetRoom() - 1) + x_int] != 0) {
         return true;
     }
@@ -50,9 +50,9 @@ bool Player::CheckKey(Point coord)
 {
     int x_int = coord.x / tileSize;
     int y_int = coord.y / tileSize;
-    //std::cout << "BRUH " << items->GetKeyLocation().size() << std::endl;
+    
     for(auto i : items->GetKeyLocation()) {
-        //std::cout << "coords" << i.x << " " << i.y << std::endl;
+        
         if (i.x / 32 == x_int && i.y / 32 == y_int) {
             return true;
         }
@@ -66,10 +66,20 @@ bool Player::CheckDoor(Point coord)
     int y_int = coord.y / tileSize;
     std::vector<Point> doors = items->GetDoorLocation();
     for(auto i : doors) {
-        //std::cout << "CURRENT: " << x_int << " " << y_int << " NEED: " << i.x / tileSize << " " << i.y / tileSize << std::endl;
+        
         if (i.x / tileSize == x_int && i.y / tileSize == y_int) {
             return true;
         }
+    }
+    return false;
+}
+
+bool Player::CheckWin(Point coord)
+{
+    int x_int = coord.x / tileSize;
+    int y_int = coord.y / tileSize;
+    if (castle->GetBackGround()[(23 - y_int) * 24 + 24 * 24 * (castle->GetRoom() - 1) + x_int] == 'Q') {
+        return true;
     }
     return false;
 }
@@ -81,7 +91,7 @@ bool Player::CheckMonster(Point coord)
 
 void Player::ProcessInput(PlayerAction dir)
 {
-    int move_dist = move_speed * 2;
+    int move_dist = move_speed * 1;
     Point tmp, tmp1;
     int offset = 0;
     switch(dir)
@@ -141,7 +151,7 @@ void Player::ProcessInput(PlayerAction dir)
             break;
         case PlayerAction::INTERACTION:
             std::cout << "TAKE THIS ITEM" << std::endl;
-            //std::cout << CheckDoor({ .x = coords.x, .y = coords.y + 32 }) << std::endl;
+            
             if (CheckDoor({ .x = coords.x, .y = coords.y + 32 }) && num_of_keys) {
                 num_of_keys--;
                 move_speed_tmp = move_speed;
@@ -156,7 +166,6 @@ void Player::ProcessInput(PlayerAction dir)
             break;
     }
     int next_room = 0;
-    //std::cout << "COOOOOOORDS " << CheckKey(coords) << std::endl;
     if (CheckKey(coords)) {
         items->SetKeyStatus(castle->GetRoom(), false);
         num_of_keys++;
@@ -168,6 +177,12 @@ void Player::ProcessInput(PlayerAction dir)
         move_speed_tmp = move_speed;
         move_speed = 0;
         state = PlayerState::DYING;
+    }
+    
+    if (CheckWin(coords)) {
+        move_speed_tmp = move_speed;
+        move_speed = 0;
+        state = PlayerState::WINNING;
     }
     
     if (CheckExit(coords) && move_speed != 0) {
@@ -192,11 +207,11 @@ void Player::ProcessInput(PlayerAction dir)
         if (next_room == 0) {
             std::cout << "NO ROOM THERE" << std::endl;
         } else {
-            //std::cout << "Next room: " << next_room << std::endl;
+            
             castle->SetRoom(next_room);
-            //std::cout << "Current room: " << castle->GetRoom() << std::endl;
+            
         }
-        //castle->ChangeRoom();
+        
     }
 }
 

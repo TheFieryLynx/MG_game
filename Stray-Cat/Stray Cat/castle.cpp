@@ -24,13 +24,11 @@ void Castle::DrawRoom(std::shared_ptr<Image> screen, int num)
     std::cout << "DRAWING ROOM IS " << num << std::endl;
     int tilenum = 24 * 24;
     int j, corn, x, y;
-    //int itm;
     for(int i = (num - 1) * tilenum; i < num * tilenum; ++i) {
         coords.x = (i % 24) * tileSize;
         coords.y = (screen->Height() - tileSize) - tileSize * ((i % tilenum) / 24);
         j = temp[i];
         corn = corner[i];
-        //itm = items[i];
         switch (back[i]) {
             case '.':
                 if (j != 0) {
@@ -39,10 +37,14 @@ void Castle::DrawRoom(std::shared_ptr<Image> screen, int num)
                 if (corn != 0) {
                     Draw(screen, wall[corn - 1]);
                 }
-//                if (itm != 0) {
-//                    std::cout << "IMAGE: " << itm << std::endl;
-//                    Draw(screen, item_img[itm - 1]);
-//                }
+                break;
+            case 'Q':
+                if (j != 0) {
+                    Draw(screen, floor[j - 1]);
+                }
+                if (corn != 0) {
+                    Draw(screen, wall[corn - 1]);
+                }
                 break;
             case '#':
                 if (j != 0) {
@@ -72,16 +74,12 @@ void Castle::DrawRoom(std::shared_ptr<Image> screen, int num)
                 std::cout << x << " " << y <<  std::endl;
                 std::cout << coords.x / 32 << " " << coords.y / 32 << std::endl;
                 if (y < 3 && x > 3 && x < 20) {
-                    //std::cout << "A" << std::endl;
                     SetPoint({ .x = coords.x, .y = coords.y }, 1);
                 } else if (y > 20 && x > 3 && x < 20) {
-                    //std::cout << "B" << std::endl;
                     SetPoint({ .x = coords.x, .y = coords.y }, 3);
                 } else if (x < 3 && y > 3 && y < 20) {
-                    //std::cout << "C" << std::endl;
                     SetPoint({ .x = coords.x, .y = coords.y }, 0);
                 } else if (x > 20 && y > 3 && y < 20) {
-                    //std::cout << "D" << std::endl;
                     SetPoint({ .x = coords.x, .y = coords.y }, 2);
                 }
                 break;
@@ -117,7 +115,6 @@ void Castle::SetPoint(Point a, int room)
 
 void Castle::SetRoom(int room)
 {
-    //std::cout << "!!!" << std::endl;
     current_room = room;
 }
 
@@ -139,13 +136,6 @@ void Castle::InitResources() {
         wall.push_back(std::make_shared<Image>(path));
     }
     floor_file.close();
-    
-//    floor_file.open("../../../Stray Cat/resources/BackGround/items/item_paths.txt");
-//    while (std::getline(floor_file, path)) {
-//        //std::cout << path << std::endl;
-//        item_img.push_back(std::make_shared<Image>(path));
-//    }
-//    floor_file.close();
     
 }
 
@@ -173,12 +163,6 @@ void Castle::InitTemplates()
         corner.push_back(inp);
     }
     file_temp.close();
-    
-//    file_temp.open("../../../Stray Cat/resources/BackGround/Items.txt");
-//    while (file_temp >> inp) {
-//        items.push_back(inp);
-//    }
-//    file_temp.close();
     
     ReadMap();
 }
@@ -247,11 +231,9 @@ int Items::GetDoorStatus(int room)
 {
     auto search = door_is_opened.find(room);
     if (search != door_is_opened.end()) {
-        //std::cout << "Found " << search->first << " " << search->second << " ";
         return door_is_opened[room];
     } else {
         SetDoorStatus(room, 0);
-        //std::cout << "Not found ";
         return false;
     }
 }
@@ -265,11 +247,9 @@ bool Items::GetKeyStatus(int room)
 {
     auto search = key_in_room.find(room);
     if (search != key_in_room.end()) {
-        //std::cout << "Found " << search->first << " " << search->second << " ";
         return key_in_room[room];
     } else {
         SetKeyStatus(room, true);
-        //std::cout << "Not found ";
         return false;
     }
 }
@@ -286,7 +266,6 @@ void Items::InitResources()
     std::fstream file_temp;
     file_temp.open("../../../Stray Cat/resources/BackGround/Items.txt");
     char ch;
-    //std::cout << "!!!!!!!!!!!!!" << std::endl;
     while((ch = file_temp.get()) != EOF) {
         if (ch != '\n' && ch != ' ') {
             tmp.push_back(ch);
@@ -422,7 +401,6 @@ void Items::DrawKey(std::shared_ptr<Image> screen, float time, bool status)
     int j = int(cnt) % 4;
     if (status) {
         for(auto i : key_location_copy) {
-            //std::cout << "coords" << i.x << " " << i.y << std::endl;
             DrawSaved(screen, i);
             Draw(screen, key[j], i, 1);
             screen->UpdateSavedTile(i.x, i.y, screen);
@@ -432,7 +410,6 @@ void Items::DrawKey(std::shared_ptr<Image> screen, float time, bool status)
             DrawSavedWithoutItems(screen, i);
             Draw(screen, key[j], i, 0);
             screen->UpdateSavedTile(i.x, i.y, screen);
-            //key_location_copy.clear();
         }
     }
 }
@@ -445,15 +422,12 @@ void Items::DrawAnimatedImages(std::shared_ptr<Image> screen, float time)
     cnt += time * 4;
     int j = int(cnt) % 4;
     
-    //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
     for(auto i : torch_location) {
         delta++;
-        //std::cout << "coords" << i.x << " " << i.y << std::endl;
         DrawSaved(screen, i);
         Draw(screen, torch[(j + delta) % 4], i, 1);
         screen->UpdateSavedTile(i.x, i.y, screen);
     }
-    //std::cout << "kekw " << cnt  << " " <<  j << " " << torch_location.size() << std::endl;
 }
 
 void Items::DrawStaticImages(std::shared_ptr<Image> screen)
@@ -466,18 +440,14 @@ void Items::DrawStaticImages(std::shared_ptr<Image> screen)
 
 void Items::DrawDoor(std::shared_ptr<Image> screen, int opening_status, double p)
 {
-    // 0 - closed, 1 - opening, 2 - opened
     int door_i = 0;
     for(auto i : door_location) {
         if (opening_status == 1) {
             std::cout << i.x << " " << i.y << std::endl;
             DrawSaved(screen, i);
             Draw(screen, door[(door_i++) % 4], i, p);
-            //screen->UpdateSavedTile(i.x, i.y, screen);
         } else if (opening_status == 2) {
             Draw(screen, door[(door_i++) % 4], i, 0);
-            //screen->UpdateSavedTile(i.x, i.y, screen);
-            //screen->UpdateSavedTile(i.x, i.y, screen);
         } else {
             screen->UpdateSavedTile(i.x, i.y, screen);
             Draw(screen, door[(door_i++) % 4], i, 1);
@@ -534,14 +504,12 @@ void Inventory::InitResources()
     std::string path;
     std::fstream floor_file("../../../Stray Cat/resources/Inventory/Inventory_paths.txt");
     while (std::getline(floor_file, path)) {
-        //std::cout << path << std::endl;
         inv_img.push_back(std::make_shared<Image>(path));
     }
     floor_file.close();
     
     std::fstream font_file("../../../Stray Cat/resources/Inventory/font/font_paths.txt");
     while (std::getline(font_file, path)) {
-        //std::cout << path << std::endl;
         fonts.push_back(std::make_shared<Image>(path));
     }
     font_file.close();
@@ -554,7 +522,6 @@ void Inventory::ReadTempate()
     char ch;
     while((ch = file_temp.get()) != EOF) {
         if (ch != '\n' && ch != ' ') {
-            //std::cout << ch;
             back.push_back(ch);
         }
     }
@@ -567,7 +534,7 @@ void Inventory::DrawInventory(int num_keys)
     for (int i = 0; i < tilenum; ++i) {
         coords.x = (i % 11) * tileSize;
         coords.y = (768 - tileSize) - tileSize * ((i % tilenum) / 11);
-        //std::cout << "============ " << back[i] << coords.x << " " << coords.y << std::endl;
+        
         switch (back[i]) {
             case 't':
                 Draw(inv_img[2]);

@@ -147,7 +147,6 @@ struct Castle
     Point GetPlayerPoint(std::string s);
     void ReadMap();
     
-    //void SaveScreen();
     void DrawNewRoom();
     void SaveNewRoom();
 private:
@@ -160,17 +159,9 @@ private:
     std::shared_ptr<Image> screen;
     std::vector<std::shared_ptr<Image>> floor;
     std::vector<std::shared_ptr<Image>> wall;
-    //
+
     std::map<int, Rooms> room_neighbors;
     std::array<Point, 4> possible_points;
-    //Castle& operator= (const Castle &cast) = delete;
-    
-//    Castle& operator= (const Castle &cast)
-//    {
-//        return std::make_shared<Castle>(cast);
-//
-//    }
-    //std::vector<Pixel *> screenStates;
 };
 
 

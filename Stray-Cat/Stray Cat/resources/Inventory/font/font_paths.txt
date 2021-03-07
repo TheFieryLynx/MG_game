@@ -6,3 +6,6 @@
 ../../../Stray Cat/resources/Inventory/font/4.png
 ../../../Stray Cat/resources/Inventory/font/5.png
 ../../../Stray Cat/resources/Inventory/font/6.png
+../../../Stray Cat/resources/Inventory/font/7.png
+../../../Stray Cat/resources/Inventory/font/8.png
+../../../Stray Cat/resources/Inventory/font/9.png
